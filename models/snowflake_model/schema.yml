@@ -7,3 +7,6 @@ models:
           # - unique
           - not_null
   - name: employee_sales_vw
+    tags:
+        - tag1
+        - Finance
