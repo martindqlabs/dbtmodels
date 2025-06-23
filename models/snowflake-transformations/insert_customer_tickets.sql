@@ -5,19 +5,22 @@
     )
 }}
 
-WITH new_tickets AS (
-    SELECT 
-        ticket_id,
-        customer_id,
-        ticket_status,
-        created_at,
-        updated_at
-    FROM {{ ref('customer_tickets') }}
-    WHERE created_at > (SELECT MAX(created_at) FROM {{ this }})
-)
-
-SELECT * FROM new_tickets
+SELECT 
+    t.ticket_id,
+    t.customer_id,
+    t.issue_type,
+    t.description,
+    TRY_TO_TIMESTAMP(t.ticket_date) AS ticket_date,
+    t.resolution_status,
+    t.first_name,
+    t.last_name,
+    t.email,
+    t.phone_number,
+    t.join_date,
+    t.status,
+    t.loyalty_points
+FROM {{ ref('customer_tickets') }} t
 
 {% if is_incremental() %}
-    WHERE created_at > (SELECT MAX(created_at) FROM {{ this }})
+WHERE TRY_TO_TIMESTAMP(t.ticket_date) > (SELECT MAX(ticket_date) FROM {{ this }})
 {% endif %}
