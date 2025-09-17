@@ -10,7 +10,4 @@ SELECT
     addressid AS address_id,
     street,
     city,
-    state,
-  
-    country-
 FROM DQLABS_QA.staging.customer_full
