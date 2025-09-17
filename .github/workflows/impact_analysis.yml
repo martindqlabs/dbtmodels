@@ -32,7 +32,7 @@ jobs:
 
       - name: Run DQLabs Impact Analysis
         id: impact-analysis
-        uses: DQLmodel/DBT_model@testing
+        uses: martindqlabs/dbtmodels@test_martin_qa
         with:
           api_client_id: ${{ secrets.DQLABS_API_CLIENT_ID }}
           api_client_secret: ${{ secrets.DQLABS_API_CLIENT_SECRET }}

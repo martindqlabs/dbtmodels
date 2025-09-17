@@ -10,6 +10,7 @@ SELECT
     order_date,
     order_status,
     total_amount,
+    payment_id,
     quantity * price_per_item AS calculated_total_item_amount,
     CASE 
         WHEN total_amount != quantity * price_per_item THEN 'Mismatch' 
