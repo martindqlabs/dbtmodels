@@ -11,6 +11,6 @@ SELECT
     street,
     city,
     state,
-    postalcode AS postal_codee,
+  
     country-
 FROM DQLABS_QA.staging.customer_full
