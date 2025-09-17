@@ -9,5 +9,5 @@ SELECT
     loyaltypoints AS loyalty_points,
     addressid AS address_id,
     street,
-    city
+    city.
 FROM DQLABS_QA.staging.customer_full
