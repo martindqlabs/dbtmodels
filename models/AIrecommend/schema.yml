@@ -1,0 +1,93 @@
+version: 2
+
+models:
+  - name: stg_claims
+    description: >
+      The claims staging model provides a standardized view of raw insurance claim data yes.
+    columns:
+      - name: CLAIM_ID
+        description: "Edited description for claim_id"
+        tests:
+          - not_null          # fails if CLAIM_ID is null
+          - unique            # fails if CLAIM_ID duplicates
+
+      - name: STATUS
+        description: "Current processing status of the claim (e.g., OPEN, CLOSED, PENDING)."
+        tests:
+          - not_null
+          - accepted_values:   # fails if STATUS has other than OPEN/CLOSED
+              values: ['OPEN', 'CLOSED']
+
+      - name: CLAIM_TYPE
+        description: "This attribute contains type of the claims"
+        tests:
+          - accepted_values:   # fails if CLAIM_TYPE outside allowed types
+              values: ['AUTO', 'HEALTH', 'LIFE']
+
+      - name: CLAIM_DATE
+        description: "Date when the claim was filed."
+        tests:
+          - not_null
+
+      - name: POLICY_NUMBER
+        description: "Unique identifier for the policy."
+        tests:
+          - not_null
+          - unique
+
+      - name: CUSTOMER_ID
+        description: "Foreign key to the customers table."
+        tests:
+          - relationships:     # fails if CUSTOMER_ID not present in stg_customers
+              to: ref('stg_customers')
+              field: CUSTOMER_ID
+
+  - name: stg_claimstx
+    description: >
+      Staging model for claim transactions.
+      Contains financial and event-level transaction details linked to claims.
+    columns:
+      - name: CLAIM_ID
+        description: "Foreign key to the claim header."
+        tests:
+          - not_null
+      - name: TX_ID
+        description: "Unique identifier for the claim transaction."
+        tests:
+          - unique
+          - not_null
+      - name: TX_DATE
+        description: "Date of the transaction."
+      - name: TX_AMOUNT
+        description: "Amount of the claim transaction."
+      - name: TX_TYPE
+        description: "Type of transaction (e.g., Payment, Adjustment)."
+      - name: CREATED_DATE
+        description: "Record creation timestamp."
+      - name: UPDATED_DATE
+        description: "Record last updated timestamp."
+
+  - name: fct_claims
+    description: >
+      Fact model combining claim header data with related claim transactions.
+      Each row represents a claim and its corresponding transactions.
+    columns:
+      - name: CLAIM_ID
+        description: "Unique identifier for the claim."
+        tests:
+          - not_null
+      - name: CLAIM_NUMBER
+        description: "Business claim number."
+      - name: POLICY_NUMBER
+        description: "Identifier of the policy related to the claim."
+      - name: CLAIM_DATE
+        description: "Date when the claim was filed."
+      - name: TX_ID
+        description: "Unique identifier of the related claim transaction."
+      - name: TX_DATE
+        description: "Date of the transaction."
+      - name: TX_AMOUNT
+        description: "Monetary value of the transaction."
+      - name: TX_TYPE
+        description: "Category/type of transaction."
+

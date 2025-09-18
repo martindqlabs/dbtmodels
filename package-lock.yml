@@ -1,6 +1,14 @@
 packages:
-  - package: dbt-labs/dbt_external_tables
+  - name: dbt_external_tables
+    package: dbt-labs/dbt_external_tables
     version: 0.9.0
-  - package: dbt-labs/dbt_utils
+  - name: dbt_utils
+    package: dbt-labs/dbt_utils
     version: 0.8.6
-sha1_hash: eb4bba29d5dba21bbb9562a32d7ae7deec288dbd
+  - name: dbt_expectations
+    package: calogica/dbt_expectations
+    version: 0.9.0
+  - name: dbt_date
+    package: calogica/dbt_date
+    version: 0.8.1
+sha1_hash: 13760d54087f0978080d5637f3885c7c61d9caea
