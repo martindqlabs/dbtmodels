@@ -7,10 +7,5 @@ SELECT
     joindate AS join_date,
     status,
     loyaltypoints AS loyalty_points,
-    addressid AS address_id,
-    street,
-    city,
-    state,
-    postalcode AS postal_code,
-    country-
+    addressid AS address_id
 FROM DQLABS_QA.staging.customer_full
