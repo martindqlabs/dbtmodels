@@ -63,4 +63,5 @@ SELECT
   TOTAL_AMOUNT,
   REGION
 FROM deduplicated_data
-WHERE rn = 1 
+WHERE rn = 1 aa tst
+
