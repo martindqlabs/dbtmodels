@@ -5,3 +5,4 @@ sources:
     schema: dqlabs
     tables:
       - name: bankclient
+      - name: bankloan 

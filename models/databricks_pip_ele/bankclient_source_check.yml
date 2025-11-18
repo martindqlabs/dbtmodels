@@ -12,3 +12,22 @@ models:
       - name: full_date
         tests:
           - not_null
+  - name: stg_bankloan
+    description: "Staging model for bank loan data"
+    columns:
+      - name: loan_id
+        tests:
+          - not_null
+          - unique
+
+      - name: account_id
+        tests:
+          - not_null
+
+      - name: amount
+        tests:
+          - not_null
+
+      - name: purpose
+      - name: status
+      - name: payments
