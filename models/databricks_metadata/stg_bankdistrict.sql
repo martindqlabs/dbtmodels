@@ -1,5 +1,5 @@
-with source as (
+with bankdistrict as (
     select * from {{ source('dqlabs', 'bankdistrict') }}
 )
 
-select * from source
+select * from bankdistrict

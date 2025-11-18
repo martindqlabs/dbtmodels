@@ -1,4 +1,4 @@
-with source1 as (
+with stg_bankaccount as (
     select
         ACCOUNT_ID,
         DAY,
@@ -9,4 +9,4 @@ with source1 as (
         YEAR
     from {{ source('dqlabs', 'bankaccount') }}
 )
-select * from source1
+select * from stg_bankaccount

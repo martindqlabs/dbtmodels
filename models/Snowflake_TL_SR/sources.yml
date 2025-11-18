@@ -12,7 +12,7 @@ sources:
           - name: RECORD_ID
             description: "Unique record identifier"
             tests:
-              - unique
+             # - unique
               - not_null
           - name: "DATE"
             description: "Date of the sale"

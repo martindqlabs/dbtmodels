@@ -1,0 +1,19 @@
+version: 2
+
+exposures:
+  - name: tableau_dbt_customerai_incr
+    type: dashboard
+    maturity: high
+    url: https://prod-in-a.online.tableau.com/#/site/wamgxkymmilmcygkbh-37030d7501/views/DBT_CLOUD_CUSTOMERAI_INCR/Sheet1
+    description: |
+      Tableau sheet visualizing customer and order data using the customerai_dbt_incr model.
+
+    depends_on:
+      - ref('customerai_dbt_incr')
+      - ref('stg_orders')
+
+    owner:
+      name: Data & Analytics Team Updated Owner
+      email: praveen@dqlabs.ai
+    
+    tags: ["customer", "dashboard", "executive","Updated TAGS",NEW_TAG_WITHUPDATED]

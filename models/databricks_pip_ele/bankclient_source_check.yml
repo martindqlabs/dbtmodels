@@ -1,0 +1,14 @@
+models:
+  - name: stg_bankclient
+    description: "Staging model with selected columns from bankclient."
+    columns:
+      - name: client_id
+        tests:
+          - not_null
+          - unique
+      - name: email
+        tests:
+          - not_null
+      - name: full_date
+        tests:
+          - not_null
