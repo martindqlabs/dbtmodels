@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: sales
+    tables:
+      - name: Personal_Loan_Data
+
+models:
+  - name: stg_personal_loan_data
+    columns:
+      - name: first_name
+        tests:
+          - not_null
+      - name: ssn
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_personal_loan_customers
+    columns:
+      - name: credit_score_bucket
+        tests:
+          - not_null
+  

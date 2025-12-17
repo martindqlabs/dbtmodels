@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: synapse_dqlabs
+    schema: sales
+    tables:
+      - name: Personal_Loan_Data
+      - name: country_codes_sample

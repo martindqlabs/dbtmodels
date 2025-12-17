@@ -1,4 +1,4 @@
-{{ config(materialized='view') }}
+{{ config(materialized='table') }}
 
 with client as (
     select *
@@ -20,8 +20,7 @@ select
     client.client_id,
     client.first_name,
     client.last_name,
-    client.email,
-    client.phone_number
+    client.email
 from loan
 left join client
-    on loan.account_id = client.account_id
+    on loan.account_id = client.client_id
