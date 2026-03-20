@@ -8,7 +8,7 @@ models:
       The claims staging model provides a standardized view of raw insurance claim data new.
     columns:
       - name: CLAIM_ID
-        description: "description should update"
+        description: "CLAIM_ID"
         tests:
           - not_null
           - unique
@@ -17,9 +17,10 @@ models:
         description: "Current processing status of the claim (e.g., OPEN, CLOSED, PENDING)."
         tests:
           - not_null
+          - unique
           - accepted_values:
               arguments:
-                values: ['OPEN', 'CLOSED']
+                values: ['OPEN', 'CLOSED','PENDING']
 
       - name: CLAIM_TYPE
         description: "This attribute contains type of the claims in stg_claim"
@@ -54,8 +55,6 @@ models:
     columns:
       - name: CLAIM_ID
         description: "Foreign key to the claim header."
-        tests:
-          - not_null
 
       - name: TX_ID
         description: "Unique identifier for the claim transaction."

@@ -1,5 +1,5 @@
 name: "DBT Impact Analysis on PR"
- 
+
 on:
   pull_request:
     paths:
