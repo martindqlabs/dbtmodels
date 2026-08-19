@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: banking
+    database: PRIZM_QA
+    schema: BANKING
+    tables:
+      - name: transactions_dbt
+      - name: daily_transactions_dbt
+      - name: aml_transactions_dbt
+      - name: accounts
+        columns:
+          - name: account_id
+          - name: account_type
+          - name: branch_id
+          - name: currency
+          - name: status
+          - name: opened_date
+      - name: customers
+        columns:
+          - name: customer_id
+          - name: account_id
+          - name: customer_name
+          - name: risk_rating
+          - name: customer_segment
+          - name: country

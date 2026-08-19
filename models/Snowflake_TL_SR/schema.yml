@@ -2,10 +2,10 @@ version: 2
 
 models:
   - name: stg_retail_sales
-    description: "Stage raw retail sales data, cleaning and filtering"
+    description: "Stage raw retail sales data, cleaning and filtering process"
     columns:
       - name: SALE_DATE
-        description: "Date of sale"
+        description: "Date of sale name"
       - name: CUSTOMER_NAME
         description: "Name of the customer"
       - name: SALE_AMOUNT

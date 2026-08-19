@@ -3,6 +3,16 @@ version: '1.0.0'
 config-version: 2
 profile: dbttest
 
+# rows_affected in artifacts: dbt writes target/run_results.json (note: run_results, plural).
+# Each executed node has adapter_response.rows_affected (often -1 for views; Snowflake fills
+# this after DML). See https://docs.getdbt.com/reference/artifacts/run-results-json
+#
+# Quick view (jq): jq '.results[] | {unique_id, status, rows: .adapter_response.rows_affected}' target/run_results.json
+# Flat file helper: python scripts/extract_rows_affected_from_run_results.py
+# Optional copy to top-level result key: same script with --inject
+
+require-dbt-version: [">=1.2.0", "<3.0.0"]
+
 # Paths
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -15,6 +25,18 @@ target-path: "target"
 clean-targets:
   - "target"
   - "dbt_packages"
+
+# rows_affected_console: prints one line per model to dbt stdout (dbt Cloud job logs / CLI).
+# claim_analytics_audit: true → also insert each model into DQLABS_QA.RUNFAILURE.DBT_ROWS_AFFECTED_LOG
+vars:
+  rows_affected_console: true
+  claim_analytics_audit: false
+
+on-run-start:
+  - "{{ claim_analytics_hooks_run_start() }}"
+
+on-run-end:
+  - "{{ claim_analytics_hooks_run_end(results) }}"
 
 # Default materialization
 models:
@@ -37,13 +59,13 @@ models:
     # redshift_models:
     #   +materialized: table
 
-    # snowflake_model:
-    #   +schema: REPORTING
-    #   +materialized: view
+    snowflake_model:
+      +schema: REPORTING
+      +materialized: view
 
-    # sf_customer_model:
-    #   +schema: CUSTOMERAI
-    #   +materialized: view
+    sf_customer_model:
+      +schema: CUSTOMERAI
+      +materialized: view
 
     # Demo_models:
     #   +schema: TARGET_DEMO
@@ -90,3 +112,38 @@ models:
         +schema: GOLD
         +materialized: table
         +tags: ['gold']
+
+    # ----- AIrecommend -----
+    
+    AIrecommend:
+      +schema: STAGING
+      +database: DQLABS_QA
+      +materialized: table
+
+    claim_analytics:
+      +database: DQLABS_QA
+      +schema: RUNFAILURE
+      +materialized: table
+      diagnostics:
+        +materialized: view
+    bank:
+      +database: DQLABS_QA
+      +schema: STAGING
+      +materialized: table
+      diagnostics:
+        +materialized: view        
+    
+    banking_model:
+      staging:
+        banking:
+          +database: PRIZM_QA
+          +schema: STAGING
+          +materialized: view
+          +tags: ['banking', 'staging']
+
+      marts:
+        report:
+          +database: PRIZM_QA
+          +schema: REPORT
+          +materialized: table
+          +tags: ['banking', 'report']

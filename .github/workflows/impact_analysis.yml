@@ -5,20 +5,22 @@ on:
     paths:
       - '**/*.sql'
       - '**/*.yml'
- 
+      - '**/*.csv'
+
 permissions:
   contents: read
   pull-requests: write
- 
+
 jobs:
   impact-analysis:
     runs-on: ubuntu-latest
- 
+
     steps:
       - name: Checkout PR code (head)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Get changed DBT files
         id: changes
         uses: tj-actions/changed-files@v46
@@ -26,10 +28,56 @@ jobs:
           files: |
             **/*.sql
             **/*.yml
+            **/*.csv
           include_removed: true
           include_renamed: true
           separator: ","
- 
+
+      - name: Find nearest dbt_project.yml for changed files
+        id: find_dbt_project
+        run: |
+         FILES="${{ steps.changes.outputs.all_changed_files }}"
+
+          NEAREST_PROJECT=""
+          
+          # If no changed files, fallback to root
+          if [ -z "$FILES" ]; then
+            if [ -f "dbt_project.yml" ]; then
+              NEAREST_PROJECT="dbt_project.yml"
+            fi
+          
+          else
+            IFS=',' read -ra FILE_ARRAY <<< "$FILES"
+          
+            for file in "${FILE_ARRAY[@]}"; do
+              [ -z "$file" ] && continue
+          
+              DIR=$(dirname "$file")
+          
+              while true; do
+                if [ -f "$DIR/dbt_project.yml" ]; then
+                  NEAREST_PROJECT="$DIR/dbt_project.yml"
+                  break 2
+                fi
+          
+                if [ "$DIR" = "." ]; then
+                  if [ -f "dbt_project.yml" ]; then
+                    NEAREST_PROJECT="dbt_project.yml"
+                  fi
+                  break
+                fi
+          
+                DIR=$(dirname "$DIR")
+              done
+            done
+          fi
+          
+          if [ -n "$NEAREST_PROJECT" ]; then
+            echo "dbt_project_path=$NEAREST_PROJECT" >> $GITHUB_OUTPUT
+          else
+            echo "dbt_project_path=" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run PR impact analysis via dbt_mcp API
         id: impact-analysis
         env:
@@ -37,42 +85,60 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           DBT_MCP_BASE_URL: ${{ secrets.DBT_MCP_BASE_URL }}
-          CLIENT_LINK_URL: ${{secrets.CLIENT_LINK_URL }}
+          CLIENT_LINK_URL: ${{ secrets.CLIENT_LINK_URL }}
           CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }},${{ steps.changes.outputs.deleted_files }}
           PRIZM_TOKEN: ${{ secrets.PRIZM_TOKEN }}
+          DBT_PROJECT_FILE: ${{ steps.find_dbt_project.outputs.dbt_project_path }}
+          DBT_ENVIRONMENTS: 'DBT Core Connection'
+
         run: |
           URL="${DBT_MCP_BASE_URL}/api/v1/dbt/github/pr-impact-analysis"
-          echo "Calling API via POST: $URL"
+          echo "Calling API via POST123: $URL"
+
+          DBT_PROJECT_CONTENT="null"
+
+          if [ -n "$DBT_PROJECT_FILE" ] && [ -f "$DBT_PROJECT_FILE" ]; then
+            echo "Reading dbt_project.yml from: $DBT_PROJECT_FILE"
+            DBT_PROJECT_CONTENT=$(jq -Rs . < "$DBT_PROJECT_FILE")
+          else
+            echo "dbt_project.yml not found or path invalid"
+          fi
+
           PAYLOAD=$(cat <<EOF
           {
             "repo": "$GITHUB_REPO",
             "pr_number": "$PR_NUMBER",
             "github_token": "$GITHUB_TOKEN",
-            "prizm_configurable_keys": "indirect_asset_count,direct_asset_count,direct_asset_list, indirect_asset_list, direct_column_count, sql_column_changes,indirect_column_list,direct_column_list,total_impacted_models,total_impacted_assets",
+            "prizm_configurable_keys": "indirect_asset_count,direct_asset_count,direct_asset_list,indirect_asset_list,direct_column_count,sql_column_changes,indirect_column_list,direct_column_list,total_impacted_models,total_impacted_assets,yml_column_changes",
             "changed_files_list": "$CHANGED_FILES",
-            "client_link_url": "$CLIENT_LINK_URL"
+            "dbt_environments": "Prizm_QA_Environment",
+            "client_link_url": "$CLIENT_LINK_URL",
+            "dbt_project_file_content": $DBT_PROJECT_CONTENT
           }
           EOF
           )
+
           echo "Payload:"
           echo "$PAYLOAD"
-          echo "prizm_token"
-          echo "$PRIZM_TOKEN"
+
           RESPONSE=$(curl -s -X POST "$URL" \
             -H "Content-Type: application/json" \
             -H "Accept: application/json" \
             -H "Authorization: Bearer ${PRIZM_TOKEN}" \
             -d "$PAYLOAD")
+
           echo "API Response:"
           printf '%s\n' "$RESPONSE"
+
           echo "response<<EOF" >> $GITHUB_OUTPUT
           echo "$RESPONSE" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
           printf '%s\n' "$RESPONSE" > "$GITHUB_WORKSPACE/impact_api_response.json"
- 
+
       - name: Show Summary in Logs
         run: cat "$GITHUB_WORKSPACE/impact_api_response.json"
- 
+
       - name: Debug changed files
         run: |
           echo "All files: ${{ steps.changes.outputs.all_files }}"
@@ -80,6 +146,5 @@ jobs:
           echo "Modified files: ${{ steps.changes.outputs.modified_files }}"
           echo "Removed files: ${{ steps.changes.outputs.removed_files }}"
           echo "Renamed files: ${{ steps.changes.outputs.renamed_files }}"
-          echo "All deleted_files	 files: ${{ steps.changes.outputs.deleted_files }}"
-          echo "All deleted_files	 files: ${{ steps.changes.outputs }}"
-          echo "Combined changed_files_list: ${{ steps.changes.outputs.all_changed_files }},${{ steps.changes.outputs.removed_files }}"
+          echo "Deleted files: ${{ steps.changes.outputs.deleted_files }}"
+          echo "Combined changed_files_list: ${{ steps.changes.outputs.all_changed_files }},${{ steps.changes.outputs.deleted_files }}"

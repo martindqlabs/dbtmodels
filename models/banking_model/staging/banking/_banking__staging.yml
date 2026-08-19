@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: stg_banking_transactions
+    columns:
+      - name: txn_id
+        tests: [not_null]
+      - name: account_id
+        tests: [not_null]
+      - name: txn_amount
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+      - name: txn_type
+
+  - name: stg_daily_account_activity
+    columns:
+      - name: account_id
+        tests: [not_null]
+      - name: txn_date
+        tests: [not_null]
+
+  - name: stg_accounts_customers
+    columns:
+      - name: account_id
+        tests:
+          - not_null
+          - unique
+
+      - name: risk_rating
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['LOW', 'MEDIUM', 'HIGH']
+      - name: account_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['ACTIVE', 'DORMANT', 'CLOSED','INACTIVE','SUSPENDED']

@@ -1,0 +1,66 @@
+version: 2
+
+models:
+  - name: stg_claim
+    description: Staging mirror of DQLABS_QA.ZTEST.CLAIM
+    config:
+      tags: ['claim_analytics', 'staging']
+      meta:
+        owner: 'vinaya@dqlabs.ai'
+    columns:
+      - name: CLAIM_ID
+        description: "CLAIM_ID"
+        tests:
+          - not_null
+          - unique
+ 
+      - name: STATUS
+        description: "Current processing status of the claim (e.g., OPEN, CLOSED, PENDING)."
+        tests:
+          - unique
+          - accepted_values:
+              arguments:
+                values: ['OPEN', 'CLOSED','PENDING']
+ 
+      - name: CLAIM_TYPE
+        description: "This attribute contains type of the claims in stg_claim"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['AUTO', 'HEALTH', 'LIFE']
+ 
+      - name: CLAIM_DATE
+        description: "Date when the claim was filed."
+        tests:
+          - not_null
+ 
+      - name: POLICY_NUMBER
+        description: "Unique identifier for the policy."
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_claim_tx
+    description: Staging mirror of DQLABS_QA.ZTEST.CLAIM_TX
+    config:
+      tags: ['claim_analytics', 'staging']
+
+  - name: fct_claim_transactions
+    description: Claim grain enriched with transaction lines from CLAIM_TX
+    config:
+      tags: ['claim_analytics', 'mart']
+
+  - name: claim_analytics_pipeline_health
+    description: >
+      Append one row per dbt run with staging/fact row counts, distinct claims on the fact,
+      ZTEST.CLAIM source totals, and 'today' activity on the source.
+      net_* columns compare to the prior row for incremental / merge health without using run_results.rows_affected.
+    config:
+      tags: ['claim_analytics', 'observability']
+
+  - name: rows_affected_view_probe
+    description: >
+      View built from fct_claim_transactions + stg_claim + stg_claim_tx. Use to validate rows_affected = -1
+      (or null) on views without treating the run as failed. Select with tag:rows_affected_probe or resource name.
+    config:
+      tags: ['claim_analytics', 'observability', 'rows_affected_probe']

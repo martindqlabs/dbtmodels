@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: ztest
+    description: ZTEST insurance claims sources in DQLABS_QA
+    database: DQLABS_QA
+    schema: ZTEST
+    tables:
+      - name: CLAIM
+        description: Claim header rows
+      - name: CLAIM_TX
+        description: Claim transaction / line-level rows

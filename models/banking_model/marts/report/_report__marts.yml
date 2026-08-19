@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: rpt_daily_account_summary
+    columns:
+      - name: account_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_accounts_customers')
+                field: account_id
+      - name: txn_date
+
+
+  - name: rpt_aml_alerts_vw
+    columns:
+      - name: suspicious_amount
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "> 0"
+      - name: account_id
+        tests: [not_null]

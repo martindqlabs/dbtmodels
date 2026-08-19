@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: PRIZM_BANKING
+    database: PRIZM_BANKING
+    schema: SILVER_CRM
+    tables:
+      - name: SILVER_STG_CRM_CONTACTS_NEW
+      - name: STG_CRM_CONTACTS_NEW

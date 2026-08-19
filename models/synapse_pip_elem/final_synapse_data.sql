@@ -14,7 +14,6 @@ joined as (
     select
         loan_data.*,
         country_data.country,
-        country_data.iso_code,
         country_data.dialing_code
     from loan_data
     left join country_data

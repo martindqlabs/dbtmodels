@@ -1,18 +1,19 @@
 version: 2
-
+ 
 models:
   - name: stg_claims
-    meta:
-      owner: sales_team@company.com
     description: >
-      The claims staging model provides a standardized view of raw insurance claim data new.
+      The claims staging model provides a standardized view of raw insurance claim data new way.
+    config:
+      meta:
+        owner: 'vinaya@dqlabs.ai'
     columns:
       - name: CLAIM_ID
         description: "CLAIM_ID"
         tests:
           - not_null
           - unique
-
+ 
       - name: STATUS
         description: "Current processing status of the claim (e.g., OPEN, CLOSED, PENDING)."
         tests:
@@ -21,25 +22,25 @@ models:
           - accepted_values:
               arguments:
                 values: ['OPEN', 'CLOSED','PENDING']
-
+ 
       - name: CLAIM_TYPE
         description: "This attribute contains type of the claims in stg_claim"
         tests:
           - accepted_values:
               arguments:
                 values: ['AUTO', 'HEALTH', 'LIFE']
-
+ 
       - name: CLAIM_DATE
         description: "Date when the claim was filed."
         tests:
           - not_null
-
+ 
       - name: POLICY_NUMBER
         description: "Unique identifier for the policy."
         tests:
           - not_null
           - unique
-
+ 
       - name: CUSTOMER_ID
         description: "Foreign key to the customers table."
         tests:
@@ -47,7 +48,7 @@ models:
               arguments:
                 to: ref('stg_customers')
                 field: CUSTOMER_ID
-
+ 
   - name: stg_claimstx
     description: >
       Staging model for claim transactions.
@@ -55,13 +56,15 @@ models:
     columns:
       - name: CLAIM_ID
         description: "Foreign key to the claim header."
-
+        tests:
+          - not_null
+ 
       - name: TX_ID
         description: "Unique identifier for the claim transaction."
         tests:
           - unique
           - not_null
-
+ 
       - name: TX_DATE
         description: "Date of the transaction."
       - name: TX_AMOUNT
@@ -72,8 +75,52 @@ models:
         description: "Record creation timestamp."
       - name: UPDATED_DATE
         description: "Record last updated timestamp."
+ 
+  - name: claim_volume_audit
+    description: >
+      Append-only audit of row-count changes on DQLABS_QA.ZTEST.CLAIM (via stg_claims).
+      A new row is written only when current_row_count differs from the prior snapshot.
+    columns:
+      - name: current_row_count
+        description: "Total rows in stg_claims at snapshot_at."
+      - name: previous_row_count
+        description: "Row count from the latest prior snapshot; null on first baseline row."
+      - name: net_row_change
+        description: "current_row_count minus previous_row_count; null when no prior snapshot."
+      - name: abs_row_movement
+        description: "Absolute net change; null when previous_row_count is null."
+      - name: snapshot_at
+        description: "When the volume check ran."
+      - name: dbt_invocation_id
+        description: "dbt invocation_id for the run that recorded this row."
 
-  - name: fct_claims
+  - name: fct_claims_volume_audit
+    description: >
+      Append-one-row-per-dbt-run snapshot of fct_claimsdata volume vs the previous snapshot.
+      net_row_change is the delta since the last time this model ran; map to a “rows affected” style metric in Prizm.
+    columns:
+      - name: current_row_count
+        description: "Total rows in fct_claimsdata at snapshot_at."
+      - name: current_distinct_claim_count
+        description: "Count distinct CLAIM_ID in fct_claimsdata at snapshot_at."
+      - name: previous_row_count
+        description: "Prior snapshot fact row count."
+      - name: previous_distinct_claim_count
+        description: "Prior snapshot distinct claim count."
+      - name: net_row_change
+        description: "Change in fact row count since prior snapshot."
+      - name: net_distinct_claim_change
+        description: "Change in distinct claim count since prior snapshot."
+      - name: abs_row_movement
+        description: "Absolute change in fact row count."
+      - name: volume_changed
+        description: "True when fact row count or distinct claim count differs from the prior snapshot."
+      - name: snapshot_at
+        description: "When the volume check ran."
+      - name: dbt_invocation_id
+        description: "dbt invocation_id for the run that recorded this row."
+
+  - name: fct_claimsdata
     description: >
       Fact model combining claim header data with related claim transactions.
       Each row represents a claim and its corresponding transactions.
@@ -96,3 +143,4 @@ models:
         description: "Monetary value of the transaction."
       - name: TX_TYPE
         description: "Category/type of transaction."
+
